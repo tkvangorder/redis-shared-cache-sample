@@ -12,8 +12,10 @@ A continuous delivery model is a mechanism by which you upgrade the cluster to a
 
 Any time you change the structure of your domain model, there is a potential for a breaking change. 
 
-- Renaming or renaming an attribute in your model (or column in your database)
+- Renaming or deleting an attribute in your model (or column in your database)
 - Adding attributes to your model. (Wait, what? How does an additive change impact existing software?)
+
+(There are other types of breaking changes, but the changes to a domain model have more impact with respect to distributed caching.)
 
 ## What does a distributed cache have to do with this?
 
@@ -29,36 +31,36 @@ It turns out that model changes can cause some havoc when you have two different
  
 ## How do you solve this?
 
-One way to solve the problems with caching is to provision a new instance of your distributed cache for each new version of the software. The obvious downside of this approach is that the cache will be initially be empty and will require a warm-up period.
+One way to solve the problems with caching is to provision a new instance of your distributed cache for each new version of the software. The obvious downside of this approach is that the cache will initially be empty and require a warm-up period.
 
 ## A BETTER WAY:
 
-In Redis, it is possible to store a HashSet as a value under a specific key. This means that for a given key, you can store multiple copies of the cached data using a more specific key and it is possible to use the application version as the secondary hash key under which to store the serialized data. This means that each version of the applicaiton will have its own copy of the cached value. If you combine this with the ability to detect model changes during the deserialization process, you can promote compatible versions of a cached value from one version to the next!
+In Redis, it is possible to store a HashSet as a value under a specific key. This means that for a given key, you can store multiple copies of cached data and it is possible to use the application version as the secondary hash key under which to store the serialized data. This means that each version of the applicaiton will have its own copy of the cached value. If you combine this with the ability to detect model changes during the deserialization process, you can promote compatible versions of a cached value from one version to the next!
 
 This implentation relies on two customizations: 
 
-1. A customer serializer is used to convert the cached model to JSON. This serializer will encode a model's serialVersionUID into the JSON stream. The deserializer will compare the serialVersionUID stored in the cache with the version in the application. This approach is recursive and any sub-elements are also encoded in the same way. If a version in cache does not match a version in the application, the deserializer will fail. This requires that each cached model implements "Serializable" and that each time the model is altered, a developer must increment the serialVersionUID.
+1. A custom serializer is used to convert the cached model to JSON. This serializer will encode a model's serialVersionUID into the JSON stream. The deserializer will compare the serialVersionUID stored in the cache with the version in the application. This approach is recursive and any sub-elements are also encoded in the same way. If a version in cache does not match a version in the application, the deserializer will fail. This requires that each cached model implements "Serializable" and that each time the model is altered, a developer must increment the serialVersionUID.
 
-2. The cache implementation has been altered to use a hashset as the value, where the key in the hashset is the application's build version. This relies on the deployment process to increment and inject the version into the application. This also means that each version of the application will have its own copy of a cached value. This ends up looking like CACHE_NAME -> UNIQUE KEY -> APPLICATION VERSION -> Cached Value.
+2. The cache implementation has been modified to use a hashset as the value, where the key in the hashset is the application's build version. This relies on the automated deployment process to increment and inject the version into the application. This also means that each version of the application will have its own copy of a cached value. This ends up looking like CACHE_NAME -> UNIQUE KEY -> APPLICATION VERSION -> Cached Value.
 
 
 ### Cache Promotion
 
-If there is a cache "miss" for a specific version of the application, the cache implementation will attempt to find the most recent, previous version's cached value. If the deserialization process succeeds, we know the model stored in cache is compatible the version expected by the application. This version is promoted and put into the new version's cache and does not require the new version to resolve the value against the underlying data store.
+If there is a cache "miss" for a specific version of the application, the cache implementation will attempt to find the most recent, previous version's cached value. If the deserialization process succeeds, we know the model stored in cache is compatible with the version expected by the application. This version is promoted and put into the new version's cache and does not require the new version to resolve the value against the underlying data store.
 
 
 ## Project organization
 
 There are three projects in this library: 
 
-- examplev1 This is a simple Spring boot application that provides rest endpoints to save/get customers.
-- examplev2 This is a duplicate of the first application, except that the Customer Model has been evolved to include a nested Address model.
+- examplev1 This is a simple Spring Boot application that provides REST endpoints to save/get customers.
+- examplev2 This is a duplicate of the first application, except that the customer model has been evolved to include a nested address model.
 - unified-cache This is library that can be added as a dependency to any project and it will enable redis caching and the unified caching model via Spring Boot auto-configuration.
 
 ## NOTES:
 
 - The example rest application uses an in-memory approach to data access and has an artificial 5 second delay when retrieving a customer by their ID. This method is also the one in which caching is applied.
-- The version that is currently on master is the final/working version that demonstrates how the unified cache works, see "Version 4 and 4a below". There are git tags that can be use to quickly walk through the code as we evolve from no caching to the unified caching model.
+- The version that is currently on master is the final/working version that demonstrates how the unified cache works, see "Version 4 below". There are git tags that can be use to quickly walk through the code as we evolve from no caching to the unified caching model.
 - The unified caching library includes the spring boot actuator and adds a "promotion" metric to each cache. 
 
 ## Setup
@@ -66,7 +68,7 @@ There are three projects in this library:
 - I recommend using a tool like redis desktop manager to connect to your redis instance to examine how the keys and objects are being stored.
 - Postman is another tool that makes it convenient when calling the various rest endpoints in the examples and the file "Caching Samples.postman_collection.json" can be imported into postman.
 - This project uses maven and can be built via "mvn clean package"
-- The instructions walk you through the scenarios via the command line, but I highly recommend importing this project into your favorite IDE, which also 
+- The instructions walk you through the scenarios via the command line, but I highly recommend importing this project into your favorite IDE as this will make it easy to look at the code. 
 
 ## Version 1 - Running the application without any caching in place.
 

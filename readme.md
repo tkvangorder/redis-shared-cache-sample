@@ -121,7 +121,7 @@ You can use Postman to do a "save" on example2 by doing an HTTP POST on http://l
 
 ## Version 3 - Running the application with serialization verification enabled.
 
-This is the first time that the unified-cache library is in play. Both examples have do not have an application version set and therefore the caching library will default to "1.0.0-SNAPSHOT".
+This is the first time that the unified-cache library is in play. Both examples do NOT have an application version set and therefore the caching library will default to "1.0.0-SNAPSHOT".
 
 1. Checkout the tag "serializer-validating-cache" via "git checkout tags/serializer-validating-cache".
 2. Startup redis via docker : "docker-compose up" from the root of this project. 
@@ -132,7 +132,7 @@ This is the first time that the unified-cache library is in play. Both examples 
 7. Use your browser or postman to make the a rest call on "http://localhost:8081/customers/2". This should take a little more than 5 seconds (the first time) due to the artifical delay and then the cache will make the second call much quicker.
 7. Use a redis client (like Redis Desktop Manager) to connect to your local redis instance. You will see a customer cache with a single entry, but now the value will have an addition "row" of data where the key is "1.0.0-SNAPSHOT" and the value is the expected serialized data. 
 8. Use your browser or postman to make the a rest call to second version of the aplication via "http://localhost:8082/customers/2". This will no longer fail...but it will take 5 seconds as version 2 evicts version 1's copy of the cached value.
-9. It you alternate between 1 and 2, you will find each time the get takes 5 seconds...you are witnessing cache thrashing.
+9. It you alternate between 1 and 2, you will find each time the operation takes 5 seconds...you are witnessing cache thrashing.
 
 ## Version 4 - Running the application with the unified caching model.
 
@@ -144,13 +144,13 @@ This is the first time that the unified-cache library is in play. Both examples 
 6. Verify there are no cached values in Redis from the previous examples.
 7. Use your browser or postman to make the a rest call on "http://localhost:8081/customers/2". This should take a little more than 5 seconds (the first time) due to the artifical delay and then the cache will make the second call much quicker.
 8. Use your browser or postman to make the a rest call to second version of the aplication via "http://localhost:8082/customers/2". This will take 5 seconds on the first call but the second call will will use the cached value.
-9. It you alternate between 1 and 2, you will find they are now both using their own, separate copies of the "same" object.
+9. It you alternate between 1 and 2, you will find they are now both using their own, separate copies of the "same" object from cache.
 10. Use a redis client (like Redis Desktop Manager) to connect to your local redis instance. You will see a customer cache with a single entry, but now the value will two cached "rows". Each application version will show up as a key with the serialized data as the value.
 
 ### Demonstration of how promotion works.
 
-11. Stop the application exampleV2 and now increment v2, application version by editing "exampleV2/src/main/resources/application.yml" and change info.build.version to "1003".
+11. Stop the application exampleV2 and now increment it's application version by editing "exampleV2/src/main/resources/application.yml" and change info.build.version to "1003".
 12. Rebuild exampleV2: from the /exampleV2 folder : "mvn clean package"
 13. Launch exampleV2, from the root of the project: "java -jar examplev2/target/examplev2-0.0.1-SNAPSHOT.jar"
-14. Use your browser or postman to make the a rest call to second version of the aplication via "http://localhost:8082/customers/2". This call will use the cache!
-15. Use a redis client (like Redis Desktop Manager) to connect to your local redis instance. You will see a customer cache with a single entry, but now the value will three cached "rows". Each application version (Including 1003) will show up as a key with the serialized data as the value.
+14. Use your browser or postman to make the a rest call to exampleV2 of the aplication via "http://localhost:8082/customers/2". This call will use the cache!
+15. Use a redis client (like Redis Desktop Manager) to connect to your local redis instance. You will see a customer cache with a single entry, but now the value will three cached "rows". Each application version (Including 1003) will show up as a key with the serialized data as the value. The previous version of the object was promoted to the new version without having to make a call to the database.

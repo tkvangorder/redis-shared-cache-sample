@@ -1,4 +1,4 @@
-package com.build.cache;
+package com.example.cache;
 
 import org.springframework.boot.actuate.metrics.CounterService;
 import org.springframework.data.redis.cache.RedisCache;

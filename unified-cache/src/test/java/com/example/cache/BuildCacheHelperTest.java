@@ -1,4 +1,4 @@
-package com.build.cache;
+package com.example.cache;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.any;
@@ -32,6 +32,11 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.cache.Cache;
 import org.springframework.cache.Cache.ValueWrapper;
+
+import com.example.cache.BuildCacheHelper;
+import com.example.cache.BuildCacheHelperImpl;
+import com.example.cache.ExtendedCache;
+
 import org.springframework.cache.CacheManager;
 
 public class BuildCacheHelperTest {

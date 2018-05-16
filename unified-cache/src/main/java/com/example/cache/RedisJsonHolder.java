@@ -1,4 +1,4 @@
-package com.build.cache;
+package com.example.cache;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

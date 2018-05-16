@@ -1,4 +1,4 @@
-package com.build.cache;
+package com.example.cache;
 
 /**
  * This exception is thrown when the json serializer encounters a cached object that has a different

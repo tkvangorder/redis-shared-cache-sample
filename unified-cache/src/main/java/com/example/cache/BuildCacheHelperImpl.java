@@ -1,4 +1,4 @@
-package com.build.cache;
+package com.example.cache;
 
 import java.util.Collection;
 import java.util.HashMap;

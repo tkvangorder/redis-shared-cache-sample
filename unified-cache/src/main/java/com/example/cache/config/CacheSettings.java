@@ -1,4 +1,4 @@
-package com.build.cache.config;
+package com.example.cache.config;
 
 import java.util.Map;
 

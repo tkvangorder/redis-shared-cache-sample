@@ -1,4 +1,4 @@
-package com.build.cache.config;
+package com.example.cache.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.metrics.CounterService;
@@ -11,10 +11,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import com.build.cache.BuildCacheHelper;
-import com.build.cache.BuildCacheHelperImpl;
-import com.build.cache.LooseRedisCacheManager;
-import com.build.cache.RedisJsonSerializer;
+import com.example.cache.BuildCacheHelper;
+import com.example.cache.BuildCacheHelperImpl;
+import com.example.cache.LooseRedisCacheManager;
+import com.example.cache.RedisJsonSerializer;
 
 /**
  * This configuration is automatically added to the spring context when the dependency on this library is added to a project. 

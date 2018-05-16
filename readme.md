@@ -66,16 +66,91 @@ There are three projects in this library:
 - I recommend using a tool like redis desktop manager to connect to your redis instance to examine how the keys and objects are being stored.
 - Postman is another tool that makes it convenient when calling the various rest endpoints in the examples and the file "Caching Samples.postman_collection.json" can be imported into postman.
 - This project uses maven and can be built via "mvn clean package"
+- The instructions walk you through the scenarios via the command line, but I highly recommend importing this project into your favorite IDE, which also 
 
 ## Version 1 - Running the application without any caching in place.
 
-1. Checkout the tag "no-cache" via "git checkout tags/no-cache"
+1. Checkout the tag "no-cache" via "git checkout tags/no-cache". 
+2. Build the project "mvn clean install package"
+3. Launch exampleV1, from the root of the project: "java -jar examplev1/target/examplev1-0.0.1-SNAPSHOT.jar"
+4. Use your browser or postman to make the a rest call on "http://localhost:8081/customers/2". This should take a little more than 5 seconds (each time it is called) due to the artifical delay.
+5. Explore the code under "exmaplev1", it is the only code in play at the moment. It is a simple Spring Boot Rest application using an in-memory "DAO" to store and get customers.
 
 ## Version 2 - Running the application with Spring's default caching.
 
+1. Checkout the tag "simple-cache" via "git checkout tags/simple-cache".
+2. Startup redis via docker : "docker-compose up" from the root of this project. 
+3. Build the project "mvn clean install package"
+4. Launch exampleV1, from the root of the project: "java -jar examplev1/target/examplev1-0.0.1-SNAPSHOT.jar"
+5. Launch exampleV2, from the root of the project: "java -jar examplev2/target/examplev2-0.0.1-SNAPSHOT.jar"
+6. Use your browser or postman to make the a rest call on "http://localhost:8081/customers/2". This should take a little more than 5 seconds (the first time) due to the artifical delay and then the cache will make the second call much quicker.
+7. Use a redis client (like Redis Desktop Manager) to connect to your local redis instance. You will see a customer cache with a single entry in. 
+8. Use your browser or postman to make the a rest call to second version of the aplication via "http://localhost:8082/customers/2". This will fail with an error due to a null pointer exception.
+9. You can "flush" the cache by removing the cached value via your redis client or
+
+You can use Postman to do a "save" on example1 by doing an HTTP POST on http://localhost:8081/customers with a request body of:
+
+```json
+    {
+        "customerId": 2,
+        "email": "vanilla@underpressure.com",
+        "lastName": "Van Winkle",
+        "firstName": "Robert"
+    }
+```
+
+You can use Postman to do a "save" on example2 by doing an HTTP POST on http://localhost:8082/customers with a request body of:
+
+```json
+{
+    "customerId": 2,
+    "email": "vanilla@underpressure.com",
+    "lastName": "Van Winkle",
+    "firstName": "Robert",
+    "address": {
+        "address1": "123 Circle Drive",
+        "address2": "Suite 100",
+        "city": "Wellington",
+        "state": "FL",
+        "postalCode": "33449"
+    }
+}
+```
+
+10. I recommend experimenting with postman to see the nasty side-effects from sharing a common cache.
+
 ## Version 3 - Running the application with serialization verification enabled.
+
+This is the first time that the unified-cache library is in play. Both examples have do not have an application version set and therefore the caching library will default to "1.0.0-SNAPSHOT".
+
+1. Checkout the tag "serializer-validating-cache" via "git checkout tags/serializer-validating-cache".
+2. Startup redis via docker : "docker-compose up" from the root of this project. 
+3. Build the project "mvn clean install package"
+4. Launch exampleV1, from the root of the project: "java -jar examplev1/target/examplev1-0.0.1-SNAPSHOT.jar"
+5. Launch exampleV2, from the root of the project: "java -jar examplev2/target/examplev2-0.0.1-SNAPSHOT.jar"
+6. Verify there are no cached values in Redis from the previous examples.
+7. Use your browser or postman to make the a rest call on "http://localhost:8081/customers/2". This should take a little more than 5 seconds (the first time) due to the artifical delay and then the cache will make the second call much quicker.
+7. Use a redis client (like Redis Desktop Manager) to connect to your local redis instance. You will see a customer cache with a single entry, but now the value will have an addition "row" of data where the key is "1.0.0-SNAPSHOT" and the value is the expected serialized data. 
+8. Use your browser or postman to make the a rest call to second version of the aplication via "http://localhost:8082/customers/2". This will no longer fail...but it will take 5 seconds as version 2 evicts version 1's copy of the cached value.
+9. It you alternate between 1 and 2, you will find each time the get takes 5 seconds...you are witnessing cache thrashing.
 
 ## Version 4 - Running the application with the unified caching model.
 
-## Version 4a - Demonstration of how promotion works.
+1. Checkout the master tip, which now sets the versions for each example to be different.
+2. Startup redis via docker : "docker-compose up" from the root of this project. 
+3. Build the project "mvn clean install package"
+4. Launch exampleV1, from the root of the project: "java -jar examplev1/target/examplev1-0.0.1-SNAPSHOT.jar"
+5. Launch exampleV2, from the root of the project: "java -jar examplev2/target/examplev2-0.0.1-SNAPSHOT.jar"
+6. Verify there are no cached values in Redis from the previous examples.
+7. Use your browser or postman to make the a rest call on "http://localhost:8081/customers/2". This should take a little more than 5 seconds (the first time) due to the artifical delay and then the cache will make the second call much quicker.
+8. Use your browser or postman to make the a rest call to second version of the aplication via "http://localhost:8082/customers/2". This will take 5 seconds on the first call but the second call will will use the cached value.
+9. It you alternate between 1 and 2, you will find they are now both using their own, separate copies of the "same" object.
+10. Use a redis client (like Redis Desktop Manager) to connect to your local redis instance. You will see a customer cache with a single entry, but now the value will two cached "rows". Each application version will show up as a key with the serialized data as the value.
 
+### Demonstration of how promotion works.
+
+11. Stop the application exampleV2 and now increment v2, application version by editing "exampleV2/src/main/resources/application.yml" and change info.build.version to "1003".
+12. Rebuild exampleV2: from the /exampleV2 folder : "mvn clean package"
+13. Launch exampleV2, from the root of the project: "java -jar examplev2/target/examplev2-0.0.1-SNAPSHOT.jar"
+14. Use your browser or postman to make the a rest call to second version of the aplication via "http://localhost:8082/customers/2". This call will use the cache!
+15. Use a redis client (like Redis Desktop Manager) to connect to your local redis instance. You will see a customer cache with a single entry, but now the value will three cached "rows". Each application version (Including 1003) will show up as a key with the serialized data as the value.

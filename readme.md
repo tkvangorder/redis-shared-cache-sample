@@ -4,7 +4,7 @@ This project contains a demonstration of how the Spring caching abstraction can 
 
 ## What do we mean by "continuous delivery"?
 
-In a high volume system it is very common to have a cluster of nodes that has been scaled out horizontally to handle the traffic. This conceptually looks like the same application/service that has been cloned N number of times to perform the same function. The use of load balancers and circuit breakers can be applied to the system to distribute/shape traffic across the cluster and you want this system to remain online 24/7.
+In a high volume system it is very common to have a cluster of nodes that have been scaled out horizontally to handle the traffic. This conceptually looks like the same application/service that has been cloned N number of times to perform the same function. The use of load balancers and circuit breakers can be applied to the system to distribute/shape traffic across the cluster and you want this system to remain online 24/7.
 
 A continuous delivery model is a mechanism by which you upgrade the cluster to a new version of the software without ever taking the system completely offline. This can be achieved by "dropping" one or two nodes from the cluster, updating those nodes, and then bring them back on line. This process is repeated until all nodes have been updated to the new version of the software. This "rolling deployment" means that for a period of time you will have two versions of the application that are running concurrently. This means that you have to take care in that you do not introduce a breaking change into your system.
 
@@ -17,19 +17,19 @@ Any time you change the structure of your domain model, there is a potential for
 
 ## What does a distributed cache have to do with this?
 
-A distributed cache is a server or collection of servers that sits in your infrastructure and provides a mechanism to store and retrieve data that is stored in memory within the cache. Accessing a cached value can be significantly faster than retrieving the value from an underlying database that may need to access that data from disk, use indexes, and possibly join entities (in a relational model). A distributed cache works by using a unique key (derived from the model you are going to cachce) and then serializing that data into the distributed cache.
+A distributed cache is a server or collection of servers that sits in your infrastructure and provides a mechanism to store and retrieve data. All values stored in the cache are in-memory. This makes the cache significantly faster than retrieving the value from a database that may need to access that data from disk, use indexes, and possibly join entities (in a relational model). A distributed cache works by using a unique key (derived from the model you are going to cache) and then serializing that data into the distributed cache.
 
 It turns out that model changes can cause some havoc when you have two different versions of an application that are using the same cache.
 
-  - An existing version of the software might cache a value under a key that does NOT include a new attribute, the new version might grab this cached value expecting the new attribute to be populated. This can lead to things "bad things" and what is worse, after the item is evicted, the error will magically go away. It's like chasing ghosts.
+  - An existing version of the software might cache a value under a key that does NOT include a new attribute, the new version might grab this cached value expecting the new attribute to be populated. This can lead to "bad things" and what is worse, after the item is evicted, the error will magically go away. It's like chasing ghost in the system.
   - What if you build in a solution such that as you deserialize a value from cache that you can verify its structure matches? This works better, as you dont end up getting errors, but can lead to "cache thrashing".
   1. Version A caches value.
-  2. Version B gets the value, fails to serialize, evicts that value from the cache, retrieves its version of the model  and then puts that in the cache.
-  3. Version A gets the value, fails to serialize, evicts that value from the cache, retrieves its version of the model  and then puts that in the cache.
+  2. Version B gets the value, fails to deserialize, evicts that value from the cache, retrieves its version of the model  and then puts that in the cache.
+  3. Version A gets the value, fails to deserialize, evicts that value from the cache, retrieves its version of the model  and then puts that in the cache.
  
 ## How do you solve this?
 
-One way to solve the problems with caching is to provision a new redis server for each new version of the software. The obvious downside of this approach is that the cache will be empty initially and will require a warm-up period.
+One way to solve the problems with caching is to provision a new instance of your distributed cache for each new version of the software. The obvious downside of this approach is that the cache will be initially be empty and will require a warm-up period.
 
 ## A BETTER WAY:
 
@@ -39,7 +39,7 @@ This implentation relies on two customizations:
 
 1. A customer serializer is used to convert the cached model to JSON. This serializer will encode a model's serialVersionUID into the JSON stream. The deserializer will compare the serialVersionUID stored in the cache with the version in the application. This approach is recursive and any sub-elements are also encoded in the same way. If a version in cache does not match a version in the application, the deserializer will fail. This requires that each cached model implements "Serializable" and that each time the model is altered, a developer must increment the serialVersionUID.
 
-2. The cache implementation has been altered to use a hashset as the value, where the key in the hashset is the application's build version. This relies on the deployment process to increment and inject the version into the application. This also means that each version of the application will have its own copy of a cached value. This ends up looking like <CACHE_NAME> <UNIQUE KEY> <APPLICATION VERSION> ---> Cached Value.
+2. The cache implementation has been altered to use a hashset as the value, where the key in the hashset is the application's build version. This relies on the deployment process to increment and inject the version into the application. This also means that each version of the application will have its own copy of a cached value. This ends up looking like CACHE_NAME -> UNIQUE KEY -> APPLICATION VERSION -> Cached Value.
 
 
 ### Cache Promotion
@@ -59,6 +59,7 @@ There are three projects in this library:
 
 - The example rest application uses an in-memory approach to data access and has an artificial 5 second delay when retrieving a customer by their ID. This method is also the one in which caching is applied.
 - The version that is currently on master is the final/working version that demonstrates how the unified cache works, see "Version 4 and 4a below". There are git tags that can be use to quickly walk through the code as we evolve from no caching to the unified caching model.
+- The unified caching library includes the spring boot actuator and adds a "promotion" metric to each cache. 
 
 ## Setup
 - There is a docker-compose.yml file in this project that can be used to start Redis in a docker container. The example assumes docker is running on your local machine.
@@ -68,6 +69,7 @@ There are three projects in this library:
 
 ## Version 1 - Running the application without any caching in place.
 
+1. Checkout the tag "no-cache" via "git checkout tags/no-cache"
 
 ## Version 2 - Running the application with Spring's default caching.
 

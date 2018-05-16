@@ -2,31 +2,14 @@ package com.example.customer;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.annotation.Bean;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 
+//Note that the @EnableCache is also gone, the unified-cache library will auto-configure this!
 @SpringBootApplication
-@EnableCaching
 public class CustomerApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(CustomerApplication.class, args);
 	}
 
-	//We add a redis template to the spring context to insure that all key and value data is being serialized as JSON.
-	@Bean
-	public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-
-	    RedisTemplate<Object, Object> template = new RedisTemplate<>();
-	    template.setConnectionFactory(connectionFactory);
-	    template.setDefaultSerializer(new GenericJackson2JsonRedisSerializer());
-	    template.setKeySerializer(new GenericJackson2JsonRedisSerializer());
-	    template.setHashKeySerializer(new GenericJackson2JsonRedisSerializer());
-	    template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-	    return template;
-	}
-
+	//Redis template is now gone, because the unified-cache library will handle this for us.
 }

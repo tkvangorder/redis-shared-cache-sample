@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -14,11 +16,14 @@ import org.springframework.util.StringUtils;
 @Component
 public class CustomerDaoInMemory implements CustomerDao {
 
+	private static final String CACHE_CUSTOMER_BY_ID = "customerById";
+
 	List<Customer> customerList = new ArrayList<>();
 
 	AtomicLong nextId = new AtomicLong(0);
 	
 	@Override
+    @CacheEvict(value = CACHE_CUSTOMER_BY_ID, key = "#customer.customerId", beforeInvocation = true)	
 	public Customer saveCustomer(Customer customer) {
 		Assert.notNull(customer, "A customer must be provided");
 		Assert.notNull(customer.getEmail(), "A customer cannot be added without an email address.");
@@ -45,6 +50,7 @@ public class CustomerDaoInMemory implements CustomerDao {
 	}
 
 	@Override
+    @Cacheable(value = CACHE_CUSTOMER_BY_ID, key = "#customerId")
 	public Customer getCustomerById(Long customerId) {
 		try {
 			Thread.sleep(5000);

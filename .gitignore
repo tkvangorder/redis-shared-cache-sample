@@ -1,0 +1,32 @@
+*.class
+*.log
+*.7z
+*.zip
+*.jar
+*~
+target
+bin
+.metadata
+*.DS_Store
+pom.xml.versionsBackup
+
+#IntelliJ project files
+*.iml
+.idea/
+atlassian-ide-plugin.xml
+.surefire*
+
+#Eclipse project files
+.project
+.classpath
+.settings
+.factorypath
+.apt_generated
+classpath-data.json
+.sts4-cache/
+
+# coverage
+coverage
+.springBeans
+**/.factorypath
+*.factorypath

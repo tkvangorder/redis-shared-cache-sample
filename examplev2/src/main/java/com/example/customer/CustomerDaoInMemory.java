@@ -34,6 +34,8 @@ public class CustomerDaoInMemory implements CustomerDao {
 			existingCustomer.setEmail(customer.getEmail());
 			existingCustomer.setFirstName(customer.getFirstName());
 			existingCustomer.setLastName(customer.getLastName());
+			existingCustomer.setAddress(customer.getAddress());
+			
 			return existingCustomer;
 		} else {
 			customer.setCustomerId(nextId.getAndIncrement());
@@ -79,9 +81,17 @@ public class CustomerDaoInMemory implements CustomerDao {
 		//Add some seed data to work with.
 		customerList = new ArrayList<>();
 		nextId.set(0);
-		customerList.add(new Customer(nextId.getAndIncrement(), "mchammer@tolegittoquit.com", "Burrell", "Stanley"));
-		customerList.add(new Customer(nextId.getAndIncrement(), "cc@realmusician.com", "Cornell", "Chris"));
-		customerList.add(new Customer(nextId.getAndIncrement(), "vanilla@ice.com", "Van Winkle", "Robert"));
+		Customer customer = new Customer(nextId.getAndIncrement(), "mchammer@tolegittoquit.com", "Burrell", "Stanley");
+		customer.setAddress(new Address("44896 Vista Del Sol", "Fremont", "CA", "94539"));		
+		customerList.add(customer);
+
+		customer = new Customer(nextId.getAndIncrement(), "cc@realmusician.com", "Cornell", "Chris");
+		customer.setAddress(new Address("7400 Sand Point Way NE", "Seattle", "WA", "98115"));
+		customerList.add(customer);
+
+		customer = new Customer(nextId.getAndIncrement(), "vanilla@ice.com", "Van Winkle", "Robert");
+		customer.setAddress(new Address("10775 Versailles Blvd", "Wellington", "FL", "33449"));
+		customerList.add(customer);
 	}
 	
 }

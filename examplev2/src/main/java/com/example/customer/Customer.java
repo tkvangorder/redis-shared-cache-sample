@@ -1,12 +1,18 @@
 package com.example.customer;
 
-public class Customer {
+import java.io.Serializable;
+
+public class Customer implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	Long customerId;
 	String email;
 	String lastName;
 	String firstName;
 
+	Address address;
+	
 	public Customer() {
 	}
 	
@@ -40,6 +46,14 @@ public class Customer {
 	}
 	public void setFirstName(String firstName) {
 		this.firstName = firstName;
+	}
+
+	public Address getAddress() {
+		return address;
+	}
+
+	public void setAddress(Address address) {
+		this.address = address;
 	}
 	
 }

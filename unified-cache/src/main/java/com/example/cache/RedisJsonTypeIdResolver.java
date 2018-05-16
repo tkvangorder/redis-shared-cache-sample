@@ -18,9 +18,6 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
  * This type resolver is responsible for encoding/decoding the object's serialVersionUID into the type stored in the json.
  * The deserialization of an object in redis will fail with an exception if the serialVersionUID of the cached object does not match
  * that of the on in the class loader.
- * 
- * Note, that this resolver is used recursively on complex, child objects as well and if one of the children in the tree has
- * a mismatched version UID, the serialization will fail.
  */
 public class RedisJsonTypeIdResolver extends ClassNameIdResolver {
 

@@ -5,13 +5,13 @@ import org.springframework.data.redis.cache.RedisCache;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.core.RedisOperations;
 
-public class LooseRedisCacheManager extends RedisCacheManager {
+public class UnifiedRedisCacheManager extends RedisCacheManager {
 
 
 	private final CounterService counterService;
 	private final RedisOperations<? extends Object, ? extends Object> redisOperations;
 	private final String applicationVersion;
-	public LooseRedisCacheManager(RedisOperations<? extends Object, ? extends Object> redisOperations, CounterService counterService, String applicationVersion) {
+	public UnifiedRedisCacheManager(RedisOperations<? extends Object, ? extends Object> redisOperations, CounterService counterService, String applicationVersion) {
 		super(redisOperations);
 		this.redisOperations = redisOperations;
 		this.counterService = counterService;
@@ -21,7 +21,7 @@ public class LooseRedisCacheManager extends RedisCacheManager {
 	protected RedisCache createCache(String cacheName) {
 		long expiration = computeExpiration(cacheName);
 		
-		return new LooseRedisCache(cacheName, (isUsePrefix() ? getCachePrefix().prefix(cacheName) : null), redisOperations, expiration,
+		return new UnifiedRedisCache(cacheName, (isUsePrefix() ? getCachePrefix().prefix(cacheName) : null), redisOperations, expiration,
 			counterService, applicationVersion);
 	}
 	

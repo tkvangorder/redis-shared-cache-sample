@@ -10,7 +10,7 @@ import org.springframework.cache.Cache.ValueWrapper;
 /**
  * The cache helper can be used to perform null-safe operations on the underlying spring caching abstraction.
  */
-public interface BuildCacheHelper {
+public interface CacheHelper {
 
 	boolean isCacheEnabled(String cacheName);
 

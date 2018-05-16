@@ -33,13 +33,13 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.cache.Cache;
 import org.springframework.cache.Cache.ValueWrapper;
 
-import com.example.cache.BuildCacheHelper;
-import com.example.cache.BuildCacheHelperImpl;
+import com.example.cache.CacheHelper;
+import com.example.cache.CacheHelperImpl;
 import com.example.cache.ExtendedCache;
 
 import org.springframework.cache.CacheManager;
 
-public class BuildCacheHelperTest {
+public class CacheHelperTest {
 
 
 	public static <K>  Matcher<Map<? extends K, ?>> emptyMap() {
@@ -58,29 +58,29 @@ public class BuildCacheHelperTest {
 
 	private CacheManager cacheManager;
 
-	private BuildCacheHelperImpl buildCacheHelper;
+	private CacheHelperImpl buildCacheHelper;
 
 	@Before
 	public void before() {
 		MockitoAnnotations.initMocks(this);
 		cacheManager = Mockito.mock(CacheManager.class);
-		buildCacheHelper = new BuildCacheHelperImpl(cacheManager);
+		buildCacheHelper = new CacheHelperImpl(cacheManager);
 	}
 
 	@Test
 	public void testGetCache_noCacheManager() {
-		assertThat(runNoManagerTest(BuildCacheHelper::getCache), nullValue());
+		assertThat(runNoManagerTest(CacheHelper::getCache), nullValue());
 	}
 
 	@Test
 	public void testGetCache_noCache() {
-		assertThat(runHasCacheManagerTest(BuildCacheHelper::getCache), nullValue());
+		assertThat(runHasCacheManagerTest(CacheHelper::getCache), nullValue());
 	}
 
 	@Test
 	public void testGetCache_cacheExists() {
 		initCache();
-		assertThat(runHasCacheManagerTest(BuildCacheHelper::getCache), sameInstance(cache));
+		assertThat(runHasCacheManagerTest(CacheHelper::getCache), sameInstance(cache));
 	}
 
 	@Test
@@ -164,27 +164,27 @@ public class BuildCacheHelperTest {
 		return cache;
 	}
 
-	private void runNoManagerSinkTest(BiConsumer<BuildCacheHelper, String> action) {
+	private void runNoManagerSinkTest(BiConsumer<CacheHelper, String> action) {
 		runNoManagerTest((h, c) -> {
 			action.accept(h, c);
 			return null;
 		});
 	}
-	private void runHasCacheManagerSinkTest(BiConsumer<BuildCacheHelper, String> action) {
+	private void runHasCacheManagerSinkTest(BiConsumer<CacheHelper, String> action) {
 		runHasCacheManagerTest((h, c) -> {
 			action.accept(h, c);
 			return null;
 		});
 	}
 
-	private <T> T runNoManagerTest(BiFunction<BuildCacheHelper, String, T> action) {
-		buildCacheHelper = new BuildCacheHelperImpl(null);
+	private <T> T runNoManagerTest(BiFunction<CacheHelper, String, T> action) {
+		buildCacheHelper = new CacheHelperImpl(null);
 		T result = action.apply(buildCacheHelper, UUID.randomUUID().toString());
 		verifyNoMoreInteractions(cacheManager);
 		return result;
 	}
 
-	private <T> T runHasCacheManagerTest(BiFunction<BuildCacheHelper, String, T> action) {
+	private <T> T runHasCacheManagerTest(BiFunction<CacheHelper, String, T> action) {
 		String key = UUID.randomUUID().toString();
 		T result = action.apply(buildCacheHelper, key);
 		verify(cacheManager).getCache(key);

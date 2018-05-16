@@ -9,11 +9,11 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.CacheManager;
 
-public class BuildCacheHelperImpl implements BuildCacheHelper {
+public class CacheHelperImpl implements CacheHelper {
 
 	private final CacheManager cacheManager;
 
-	public BuildCacheHelperImpl(CacheManager cacheManager) {
+	public CacheHelperImpl(CacheManager cacheManager) {
 		this.cacheManager = cacheManager;
 	}
 

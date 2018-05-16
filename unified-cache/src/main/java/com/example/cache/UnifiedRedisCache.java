@@ -25,8 +25,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * values are stored by cache name to a key. The value is actually a hashset of application version to serialized value. This means that
  * the same object can be cached more than once if their are two different versions of the application that both leverage the cache.
  * 
- * The BuildCacheHelper provides convenience methods for explicitly working with the unified cache, specifically the "put" operation in
- * the helper provides an optional flag that can be used to evict Other versions of a cached object.
+ * The CacheHelper provides programatic methods for working with the unified cache when annotations are cumbersome.
  * 
  * <PRE>
  * Example: 
@@ -64,7 +63,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  *   | - articleCache
  *           | -- Empty.
  *  
- * There places within the application that do an explicit "put" that should also "clear" other cached versions in Redis. 
+ * There are places within the application that do an explicit "put" that should also "clear" other cached versions in Redis. 
  * 
  * If instance 1 issues a put + evict to update article 13, it will clear ANY other version from the cache as well. 
  * 
@@ -74,9 +73,9 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  *</PRE>
  *
  */
-public class LooseRedisCache extends RedisCache implements ExtendedCache {
+public class UnifiedRedisCache extends RedisCache implements ExtendedCache {
 
-	private Log log = LogFactory.getLog(LooseRedisCache.class);
+	private Log log = LogFactory.getLog(UnifiedRedisCache.class);
 
 	private final CounterService counterService;
 	private final String counterPrefix;
@@ -86,14 +85,14 @@ public class LooseRedisCache extends RedisCache implements ExtendedCache {
 	private final byte[] prefix;
 	
 	/**
-	 * Constructs a new <code>LooseRedisCache</code> instance.
+	 * Constructs a new <code>UnfiedRedisCache</code> instance.
 	 *
 	 * @param name cache name
 	 * @param prefix
 	 * @param template
 	 * @param expiration
 	 */
-	public LooseRedisCache(String name, byte[] prefix, RedisOperations<? extends Object, ? extends Object> redisOperations, long expiration, CounterService counterService, String applicationVersion) {
+	public UnifiedRedisCache(String name, byte[] prefix, RedisOperations<? extends Object, ? extends Object> redisOperations, long expiration, CounterService counterService, String applicationVersion) {
 
 		super(name, prefix, redisOperations, expiration);
 		this.versionSerializer = new StringRedisSerializer();		

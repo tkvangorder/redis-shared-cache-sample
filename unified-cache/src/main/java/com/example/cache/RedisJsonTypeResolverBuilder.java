@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.jsontype.impl.ClassNameIdResolver;
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
 
 /**
- * This build just installs the custom type resolver that will encode the class name + serialVersionUid
+ * This builder just installs the custom type resolver that will encode the class name + serialVersionUid
  */
 public class RedisJsonTypeResolverBuilder extends StdTypeResolverBuilder {
 

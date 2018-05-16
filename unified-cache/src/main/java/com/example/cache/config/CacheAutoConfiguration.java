@@ -11,9 +11,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import com.example.cache.BuildCacheHelper;
-import com.example.cache.BuildCacheHelperImpl;
-import com.example.cache.LooseRedisCacheManager;
+import com.example.cache.CacheHelper;
+import com.example.cache.CacheHelperImpl;
+import com.example.cache.UnifiedRedisCacheManager;
 import com.example.cache.RedisJsonSerializer;
 
 /**
@@ -30,8 +30,7 @@ import com.example.cache.RedisJsonSerializer;
  * values are stored by cache name to a key. The value is actually a hashset of application version to serialized value. This means that
  * the same object can be cached more than once if their are two different versions of the application that both leverage the cache.
  * 
- * The BuildCacheHelper provides convenience methods for explicitly working with the unified cache, specifically the "put" operation in
- * the helper provides an optional flag that can be used to evict Other versions of a cached object.
+ * The CacheHelper provides a programatic model for working with the unified cache which can be useful when using annotations is clumsy.
  * <PRE>
  * Example: 
  * 
@@ -84,12 +83,12 @@ import com.example.cache.RedisJsonSerializer;
 public class CacheAutoConfiguration {
 
 	@Bean
-	public BuildCacheHelper buildCacheHelper(CacheManager cacheManager) {
-		//Expose an instance of the cache helper. This is especially important in use cases where a "put" operation should also evict all other copies of a
-		//given object from cache.
-		return new BuildCacheHelperImpl(cacheManager);
+	public CacheHelper cacheHelper(CacheManager cacheManager) {
+		//Expose an instance of the cache helper.
+		return new CacheHelperImpl(cacheManager);
 	}
 
+	//This caching library is only enabled when the cache type is set to Redis.	
 	@ConditionalOnExpression("'${spring.cache.type:redis}' == 'redis'")
 	protected static class CacheEnabledConfiguration {
 
@@ -106,7 +105,7 @@ public class CacheAutoConfiguration {
 		@Bean(name = {"cacheManager"})
 		public CacheManager cacheManager(RedisTemplate<?, ?> redisTemplate, CacheSettings cacheSettings,
 				CounterService counterService, @Value("${info.build.version:1.0.0-SNAPSHOT}") String applicationVersion) {
-			LooseRedisCacheManager cacheManager = new LooseRedisCacheManager(redisTemplate, counterService, applicationVersion);
+			UnifiedRedisCacheManager cacheManager = new UnifiedRedisCacheManager(redisTemplate, counterService, applicationVersion);
 			cacheManager.setDefaultExpiration(86400);
 			cacheManager.setUsePrefix(true);
 			cacheManager.setExpires(cacheSettings.getExpirations());

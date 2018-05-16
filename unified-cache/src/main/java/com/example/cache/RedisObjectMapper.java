@@ -9,15 +9,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * This object mapper is used to serialize/deserialize objects to/from Redis. The strategy used by this mapper encodes both the type (class name) along
  * with the type's serialVersionUID. The serialization will fail if a cached object's serialVersionUid (or any of its nested objects' serialVersionUid) does
  * NOT match that of the serialVerionUid in memory. This mapper has been configured to bubble up those serialization exceptions to the caller (Redis Client)
- * which are then caught in the "LooseRedisCache". See the overridden logic within the Cache.get() method.
+ * which are then caught in the "UnifiedRedisCache". See the overridden logic within the Cache.get() method.
  * 
  * This specialized mapper is installed into the RedisOperations within the "CacheAutoConfiguration" class.
  * 
- * NOTE: This mapper is NOT registered as a Spring bean because we do not want to inadvertantly inject it to other places where we do JSON serialization.
+ * NOTE: This mapper is NOT registered as a Spring bean because we do not want to inadvertently inject it to other places where we do JSON serialization.
  * 
- * NOTE: that this resolver is used recursively on complex, child objects as well and if one of the children in the tree has
- * a mismatched version UID, the serialization will fail.
- * 
+ * NOTE: This mapper will recursively serialize/deserialize child objects and a mismatched UID in a child object will
+ *       also cause deserialization to fail. 
  */
 public class RedisObjectMapper extends ObjectMapper {
 

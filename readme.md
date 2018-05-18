@@ -1,12 +1,14 @@
-# Evolving Your Distrubuted Cache In a Continuous Delivery World
+# Evolving Your Distrubuted Cache In a Continuous Deployment World
 
-This project contains a demonstration of how the Spring caching abstraction can be customized to allow multiple versions of an application to "share" the same distributed Redis cache even when the structure of the values has changed between those versions of the software. This project is structured in such a way that it will walk through the various problems you will encounter when sharing a distributed cache.
+This project contains a demonstration of how the Spring caching abstraction can be customized to allow multiple versions of an application to "share" the same distributed Redis cache even when the structure of the values has changed between those versions of the software. This project is structured in such a way that it will walk through the various problems you will encounter when sharing a distributed cache. 
 
-## What do we mean by "continuous delivery"?
+## What do we mean by "continuous deployment"?
+
+A continuous deployment model is one in which, through an automated pipeline, changes made by the developers are built, unit and integration tests are run, the application is rolled out through lower environments, and finally into production.
 
 In a high volume system it is very common to have a cluster of nodes that have been scaled out horizontally to handle the traffic. This conceptually looks like the same application/service that has been cloned N number of times to perform the same function. The use of load balancers and circuit breakers can be applied to the system to distribute/shape traffic across the cluster and you want this system to remain online 24/7.
 
-A continuous delivery model is a mechanism by which you upgrade the cluster to a new version of the software without ever taking the system completely offline. This can be achieved by "dropping" one or two nodes from the cluster, updating those nodes, and then bring them back on line. This process is repeated until all nodes have been updated to the new version of the software. This "rolling deployment" means that for a period of time you will have two versions of the application that are running concurrently. This means that you have to take care in that you do not introduce a breaking change into your system.
+It is common to use a rolling upgrade on the production environment to insure the 24/7 availability. This is achieved by "dropping" one or two nodes from the cluster, updating those nodes, and then bring them back on line. This process is repeated until all nodes have been updated to the new version of the software. This "rolling deployment" means that, for a period of time, you will have two versions of the application that are running concurrently and care must be taken to insure breaking changes are not introduced.
 
 ## What constitutes a breaking change?
 
@@ -19,7 +21,7 @@ Any time you change the structure of your domain model, there is a potential for
 
 ## What does a distributed cache have to do with this?
 
-A distributed cache is a server or collection of servers that sits in your infrastructure and provides a mechanism to store and retrieve data. All values stored in the cache are in-memory. This makes the cache significantly faster than retrieving the value from a database that may need to access that data from disk, use indexes, and possibly join entities (in a relational model). A distributed cache works by using a unique key (derived from the model you are going to cache) and then serializing that data into the distributed cache.
+A distributed cache is a server or collection of servers that sits in your infrastructure and provides a mechanism to quickly store and retrieve data (typically by storing the data in-memory). This makes the cache significantly faster than retrieving the value from a database that may need to access that data from disk, use indexes, and possibly join entities (in a relational model). A distributed cache works by using a unique key (derived from the model you are going to cache) and then serializing that data into the distributed cache.
 
 It turns out that model changes can cause some havoc when you have two different versions of an application that are using the same cache.
 
@@ -47,7 +49,6 @@ This implentation relies on two customizations:
 ### Cache Promotion
 
 If there is a cache "miss" for a specific version of the application, the cache implementation will attempt to find the most recent, previous version's cached value. If the deserialization process succeeds, we know the model stored in cache is compatible with the version expected by the application. This version is promoted and put into the new version's cache and does not require the new version to resolve the value against the underlying data store.
-
 
 ## Project organization
 

@@ -13,8 +13,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 import com.example.cache.CacheHelper;
 import com.example.cache.CacheHelperImpl;
-import com.example.cache.UnifiedRedisCacheManager;
 import com.example.cache.RedisJsonSerializer;
+import com.example.cache.UnifiedRedisCacheManager;
 
 /**
  * This configuration is automatically added to the spring context when the dependency on this library is added to a project. 
@@ -105,10 +105,7 @@ public class CacheAutoConfiguration {
 		@Bean(name = {"cacheManager"})
 		public CacheManager cacheManager(RedisTemplate<?, ?> redisTemplate, CacheSettings cacheSettings,
 				CounterService counterService, @Value("${info.build.version:1.0.0-SNAPSHOT}") String applicationVersion) {
-			UnifiedRedisCacheManager cacheManager = new UnifiedRedisCacheManager(redisTemplate, counterService, applicationVersion);
-			cacheManager.setDefaultExpiration(86400);
-			cacheManager.setUsePrefix(true);
-			cacheManager.setExpires(cacheSettings.getExpirations());
+			UnifiedRedisCacheManager cacheManager = new UnifiedRedisCacheManager(redisTemplate, cacheSettings, applicationVersion);
 			return cacheManager;
 		}
 	}

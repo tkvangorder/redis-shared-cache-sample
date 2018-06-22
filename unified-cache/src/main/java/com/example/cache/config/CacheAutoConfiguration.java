@@ -1,7 +1,6 @@
 package com.example.cache.config;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.metrics.CounterService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.CacheManager;
@@ -104,7 +103,8 @@ public class CacheAutoConfiguration {
 
 		@Bean(name = {"cacheManager"})
 		public CacheManager cacheManager(RedisTemplate<?, ?> redisTemplate, CacheSettings cacheSettings,
-				CounterService counterService, @Value("${info.build.version:1.0.0-SNAPSHOT}") String applicationVersion) {
+				@Value("${info.build.version:1.0.0-SNAPSHOT}") String applicationVersion) {
+				
 			UnifiedRedisCacheManager cacheManager = new UnifiedRedisCacheManager(redisTemplate, cacheSettings, applicationVersion);
 			return cacheManager;
 		}

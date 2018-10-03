@@ -4,3 +4,14 @@ spring:
   redis:
     host: localhost
     port: 6379
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+# The build version is typically something you want to be injected/incremented by your build process.
+# For this sample, we are just hard-coding the version. 
+info:
+  build:
+    version: 1001

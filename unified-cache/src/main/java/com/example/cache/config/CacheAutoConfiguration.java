@@ -1,12 +1,14 @@
 package com.example.cache.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.metrics.cache.CacheMetricsRegistrar;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 
@@ -108,11 +110,10 @@ public class CacheAutoConfiguration {
 		}
 
 		@Bean(name = {"cacheManager"})
-		public CacheManager cacheManager(RedisTemplate<?, ?> redisTemplate, CacheSettings cacheSettings,
+		public CacheManager cacheManager(RedisTemplate<?, ?> redisTemplate, @Lazy CacheMetricsRegistrar registrar, CacheSettings cacheSettings,
 				@Value("${info.build.version:1.0.0-SNAPSHOT}") String applicationVersion) {
 				
-			UnifiedRedisCacheManager cacheManager = new UnifiedRedisCacheManager(redisTemplate, cacheSettings, applicationVersion);
-			return cacheManager;
+			return new UnifiedRedisCacheManager(redisTemplate, registrar, cacheSettings, applicationVersion);
 		}
 	}
 

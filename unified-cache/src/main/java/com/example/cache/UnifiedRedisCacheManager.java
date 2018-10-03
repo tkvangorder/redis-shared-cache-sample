@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.boot.actuate.metrics.cache.CacheMetricsRegistrar;
 import org.springframework.cache.Cache;
 import org.springframework.cache.transaction.AbstractTransactionSupportingCacheManager;
 import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
@@ -17,9 +18,13 @@ import org.springframework.util.Assert;
 import com.example.cache.config.CacheSettings;
 import com.example.cache.config.CacheSettings.Redis;
 
+import io.micrometer.core.instrument.Tag;
+
 
 public class UnifiedRedisCacheManager extends AbstractTransactionSupportingCacheManager {
 
+	private final CacheMetricsRegistrar cacheRegistrar;
+	
 	private final RedisOperations<? extends Object, ? extends Object> redisOperations;
 	private final String applicationVersion;
 
@@ -42,11 +47,11 @@ public class UnifiedRedisCacheManager extends AbstractTransactionSupportingCache
 	//List of specific cache TTL overrides.
 	private Map<String, Long> expires = null;
 
-	public UnifiedRedisCacheManager(RedisOperations<? extends Object, ? extends Object> redisOperations, CacheSettings cacheSettings,
+	public UnifiedRedisCacheManager(RedisOperations<? extends Object, ? extends Object> redisOperations, CacheMetricsRegistrar registrar, CacheSettings cacheSettings,
 			String applicationVersion) {
 
 		Redis redisProperties = cacheSettings.getRedis();
-
+		this.cacheRegistrar = registrar;
 		this.redisOperations = redisOperations;
 		this.applicationVersion = applicationVersion;
 
@@ -74,6 +79,7 @@ public class UnifiedRedisCacheManager extends AbstractTransactionSupportingCache
 	}
 
 	protected UnifiedRedisCache createCache(String cacheName) {
+	
 		long expiration = computeExpiration(cacheName);
 		return new UnifiedRedisCache(cacheName, useCacheNamePrefix?computeCacheNamePrefix(cacheName):null, redisOperations, expiration,
 			applicationVersion);
@@ -118,7 +124,14 @@ public class UnifiedRedisCacheManager extends AbstractTransactionSupportingCache
 	 */
 	@Override
 	protected Cache getMissingCache(String name) {
-		return this.dynamic ? createCache(name) : null;
+		if (!this.dynamic) {
+			return null;
+		}
+		Tag cacheManagerTag = Tag.of("cacheManager", "unifiedRedisCacheManager");
+
+		UnifiedRedisCache cache = createCache(name); 
+		cacheRegistrar.bindCacheToRegistry(cache, cacheManagerTag);
+		return cache;
 	}
 
 	/* (non-Javadoc)

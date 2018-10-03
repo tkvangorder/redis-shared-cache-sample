@@ -92,6 +92,11 @@ public class UnifiedRedisCache implements Cache {
 	final RedisSerializer<String> versionSerializer;
 	private final byte[] currentVersionBytes;
 
+	private long hitCount = 0;
+	private long missCount = 0;
+	private long putCount = 0;
+	private long promotionCount = 0;
+	
 	/**
 	 * Constructs a new <code>UnifiedRedisCache</code> instance.
 	 *
@@ -125,7 +130,7 @@ public class UnifiedRedisCache implements Cache {
 
 	@Override
 	public ValueWrapper get(final Object key) {
-		//meterRegistry.increment(counterPrefix + ".get");
+		
 		ValueWrapper valueWrapper;
 		final byte[] keyBytes = RedisCacheUtils.computeKey(redisOperations, prefix, key);
 
@@ -153,29 +158,25 @@ public class UnifiedRedisCache implements Cache {
 							// bs could be null if evicted after the version scan
 							if (bs != null) {
 								value = redisOperations.getValueSerializer() != null ? redisOperations.getValueSerializer().deserialize(bs) : bs;
+								promotionCount++;
 								connection.hSet(keyBytes, currentVersionBytes, bs);
-	//								meterRegistry.increment(counterPrefix + ".get.promote");
 							}
 						}
 					}
 					return bs == null ? null : new SimpleValueWrapper(value);
 				});
 		} catch (RedisConnectionFailureException|TooManyClusterRedirectionsException|InvalidDataAccessApiUsageException e) {
-//			meterRegistry.increment(counterPrefix + ".get.error");
 			log.trace("Redis exception. Falling back to regular DB access.", e);
 			return null;
 		} catch (SerializationFailedException | SerializationException exception) {
-//			meterRegistry.increment(counterPrefix + ".get.error.serialization");
 			log.trace("Redis serialization exception: " + exception.getMessage(), exception);
 			return null;
 		}
 		if (valueWrapper == null) {
-//			meterRegistry.increment(counterPrefix + ".get.miss");
-			log.trace("cache: " + getName() + " - cache miss for key " + key);
+			missCount++;
 			return null;
 		} else {
-//			meterRegistry.increment(counterPrefix + ".get.hit");
-			log.trace("cache: " + getName() + " - cache hit for key " + key);
+			hitCount++;
 			return valueWrapper;
 		}
 	}
@@ -197,10 +198,9 @@ public class UnifiedRedisCache implements Cache {
 					return null;
 				}
 			});
-//			meterRegistry.increment(counterPrefix + ".put");
+			putCount++;
 		} catch (RedisConnectionFailureException|TooManyClusterRedirectionsException|InvalidDataAccessApiUsageException e) {
 			log.trace("Redis exception. Cache puts are non-critical.", e);
-//			meterRegistry.increment(counterPrefix + ".put.error");
 		}
 	}
 
@@ -426,6 +426,23 @@ public class UnifiedRedisCache implements Cache {
 			return connection instanceof RedisClusterConnection;
 		}
 
+	}
+
+
+	public long getHitCount() {
+		return hitCount;
+	}
+
+	public long getMissCount() {
+		return missCount;
+	}
+
+	public long getPutCount() {
+		return putCount;
+	}
+
+	public long getPromotionCount() {
+		return promotionCount;
 	}
 
 

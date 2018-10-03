@@ -91,6 +91,12 @@ public class CacheAutoConfiguration {
 	@ConditionalOnExpression("'${spring.cache.type:redis}' == 'redis'")
 	protected static class CacheEnabledConfiguration {
 
+		//We add a meter binder provider to allow metrics to be published on cache hits, misses, promotions, and puts.
+		@Bean
+		public UnifiedRedisCacheMeterBinderProvider unifiedRedisCacheMeterBinderProvider() {
+			return new UnifiedRedisCacheMeterBinderProvider();
+		}
+		
 		@Bean
 		public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
 			RedisTemplate<Object, Object> template = new RedisTemplate<>();

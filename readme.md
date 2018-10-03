@@ -1,16 +1,16 @@
-# Evolving Your Distributed Cache In a Continuous Deployment World
+# Evolving Your Distributed Cache In a Continuous Delivery World
 
 This project contains a demonstration of how the Spring caching abstraction can be customized to allow multiple versions of an application to "share" the same distributed Redis cache even when the structure of the values has changed between those versions of the software. This project is structured in such a way that it will walk through the various problems you will encounter when sharing a distributed cache.
 
 The code in this project was developed to support a talk that I give on the same subject and the slide deck can be found here: https://docs.google.com/presentation/d/1LZCR1o16xfoJRz0At_hNOA4ioHgrx_NUvpQQj0N2uNU/edit?usp=sharing
 
-## What do we mean by "continuous deployment"?
+## What do we mean by "continuous delivery"?
 
-A continuous deployment model is one in which, through an automated pipeline, changes made by the developers are built, unit and integration tests are run, the application is rolled out through lower environments, and finally into production.
+A continuous delivery model is one in which, through an automated pipeline, changes made by the developers are built, unit and integration tests are run, the application is rolled out through lower environments. The roll out to production is also automated and may be triggered by a manual step or through a continous deployment tool.
 
-In a high volume system it is very common to have a cluster of nodes that have been scaled out horizontally to handle the traffic. This conceptually looks like the same application/service that has been cloned N number of times to perform the same function. The use of load balancers and circuit breakers can be applied to the system to distribute/shape traffic across the cluster and you want this system to remain online 24/7.
+In a high volume system it is very common to have a cluster of nodes that have been scaled out horizontally to handle the traffic. This conceptually looks like the same application/service that has been cloned N number of times to perform the same function. The strategies that are used to upgrade a production system typically require two different versions of the application to be running concurrently to insure 24/7 availability.
 
-It is common to use a rolling upgrade on the production environment to insure the 24/7 availability. This is achieved by "dropping" one or two nodes from the cluster, updating those nodes, and then bring them back on line. This process is repeated until all nodes have been updated to the new version of the software. This "rolling deployment" means that, for a period of time, you will have two versions of the application that are running concurrently and care must be taken to insure breaking changes are not introduced.
+For the sake of this exmaple we will assume a strategy that is using rolling deployments, there are other strategies that leverage cloud resources that result in a similar problem; there are two versions of the software running concurrently for a period of time and care must be taken to insure breaking changes are not introduced. 
 
 ## What constitutes a breaking change?
 

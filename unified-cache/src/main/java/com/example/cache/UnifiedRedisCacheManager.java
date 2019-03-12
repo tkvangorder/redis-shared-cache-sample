@@ -18,12 +18,8 @@ import org.springframework.util.Assert;
 import com.example.cache.config.CacheSettings;
 import com.example.cache.config.CacheSettings.Redis;
 
-import io.micrometer.core.instrument.Tag;
-
 
 public class UnifiedRedisCacheManager extends AbstractTransactionSupportingCacheManager {
-
-	private final CacheMetricsRegistrar cacheRegistrar;
 	
 	private final RedisOperations<? extends Object, ? extends Object> redisOperations;
 	private final String applicationVersion;
@@ -51,7 +47,6 @@ public class UnifiedRedisCacheManager extends AbstractTransactionSupportingCache
 			String applicationVersion) {
 
 		Redis redisProperties = cacheSettings.getRedis();
-		this.cacheRegistrar = registrar;
 		this.redisOperations = redisOperations;
 		this.applicationVersion = applicationVersion;
 
@@ -127,11 +122,8 @@ public class UnifiedRedisCacheManager extends AbstractTransactionSupportingCache
 		if (!this.dynamic) {
 			return null;
 		}
-		Tag cacheManagerTag = Tag.of("cacheManager", "unifiedRedisCacheManager");
 
-		UnifiedRedisCache cache = createCache(name); 
-		cacheRegistrar.bindCacheToRegistry(cache, cacheManagerTag);
-		return cache;
+		return createCache(name); 
 	}
 
 	/* (non-Javadoc)

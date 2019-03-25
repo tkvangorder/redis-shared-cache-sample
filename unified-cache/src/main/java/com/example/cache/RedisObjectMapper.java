@@ -3,6 +3,7 @@ package com.example.cache;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 
 /**
@@ -30,9 +31,10 @@ public class RedisObjectMapper extends ObjectMapper {
 		typer.init(JsonTypeInfo.Id.CLASS, null);
 		typer.inclusion(JsonTypeInfo.As.WRAPPER_ARRAY);
 		setDefaultTyping(typer);
-
+		
 		//We want serialization exceptions to bubble up to the caller.
 		configure(DeserializationFeature.WRAP_EXCEPTIONS, false);
 		configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+		registerModule(new JavaTimeModule());
 	}
 }
